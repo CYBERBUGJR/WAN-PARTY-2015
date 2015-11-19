@@ -14,6 +14,9 @@ while [ $ver = "list" ] ; do
 	break
 
 done
+echo -e "Installation de open-jre :"
+apt-get update
+apt-get install openjdk-7-jre openjdk-7-jdk
 echo -e "$ROUGE" "Téléchargement de la version "$ver" \n" "$VERT"
 wget https://s3.amazonaws.com/Minecraft.Download/versions/"$ver"/minecraft_server."$ver".jar 
 echo -e "$NORMAL"
