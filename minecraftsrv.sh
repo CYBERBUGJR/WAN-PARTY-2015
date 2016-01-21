@@ -16,7 +16,8 @@ while [ $ver = "list" ] ; do
 done
 echo -e "Installation de open-jre :"
 apt-get update
-apt-get install openjdk-7-jre openjdk-7-jdk
+apt-get install openjdk-7-jre openjdk-7-jdk vim
+sed -nre 's/"syntax/syntax' /etc/vim/vimrc
 echo -e "$ROUGE" "Téléchargement de la version "$ver" \n" "$VERT"
 wget https://s3.amazonaws.com/Minecraft.Download/versions/"$ver"/minecraft_server."$ver".jar 
 echo -e "$NORMAL"
@@ -32,13 +33,18 @@ fi
 read -p "Entrez la quantité de mémoire minimale en Mégaoctets(-Xms): " javamin ; echo -e "\n"
 read -p "Entrez la quantité de mémoire maximale en Mégaoctets(-Xmx): " javamax ; echo -e "\n"
 read -p "Choisissez un nom d'alias pour le démarrage du seveur : " aliass 	
-echo "alias "$aliass"='cd /srv/minecraft_serveur/ ; java -jar -Xms"$javamin"M -Xmx"$javamax" minecraft_serveur."$ver".jar'" >> ~/.bashrc ; echo -e "$ROUGE"
+echo "alias "$aliass"='cd /srv/minecraft_server/ ; java -jar -Xms"$javamin"M -Xmx"$javamax" minecraft_server."$ver".jar'" >> ~/.bashrc ; echo -e "$ROUGE"
 read -p "Premier démarrage du serveur, tapez stop dans la console une fois le eula apparu" ; echo -e "$NORMAL"
 java -jar minecraft_server."$ver".jar
 sed -n -e 's/false/true/g' eula.txt
 echo -e "$ROUGE" " Paramétrage du server.properties" "$NORMAL"
-read  -p "Press enter"
-vim server.properties 
+read  -p "Entrez le nombre de joueurs" nbpl
+#modification du server.properties
+sed -ne 's/20/$nbpl/' server.properties
+read -p "Entrez le Motd du serveur" motd
+sed -ne 's/motd=A Minecraft Server/motd=$motd' server.properties
+
+
 echo -e " le port par défaut est 25565, est-il different ? (Y/n): "
 read res
 while [ $res = "Y" ]; do 
