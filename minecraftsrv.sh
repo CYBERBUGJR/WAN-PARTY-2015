@@ -1,5 +1,6 @@
 #!/bin/bash
-#script d'installation et configuration d'un serveur mincraft sous linux.
+#Lord.ben@cyberbugjr.ddns.net
+#script d'installation et configuration d'un serveur minecraft sous Debian.
 VERT="\\033[1;32m"
 ROUGE="\\033[1;31m"
 NORMAL="\\033[0;39m"
@@ -34,31 +35,37 @@ read -p "Entrez la quantité de mémoire minimale en Mégaoctets(-Xms): " javami
 read -p "Entrez la quantité de mémoire maximale en Mégaoctets(-Xmx): " javamax ; echo -e "\n"
 read -p "Choisissez un nom d'alias pour le démarrage du seveur : " aliass 	
 echo "alias "$aliass"='cd /srv/minecraft_server/ ; java -jar -Xms"$javamin"M -Xmx"$javamax" minecraft_server."$ver".jar'" >> ~/.bashrc ; echo -e "$ROUGE"
-read -p "Premier démarrage du serveur, tapez stop dans la console une fois le eula apparu" ; echo -e "$NORMAL"
-java -jar minecraft_server."$ver".jar
-sed -n -e 's/false/true/g' eula.txt
+#read -p "[MINE] Démarrage du Serveur...[May take a long time]" ; echo -e "$NORMAL"
+#java -jar minecraft_server."$ver".jar 
+
+cd /srv/minecraft_server/
+echo -e "eula=true\n" > eula.txt
+#sed -ie 's/eula=false/eula=true/' eula.txt #nb: sed -i Insertion dans un fichier
+echo -e "$CYAN"
+echo "[ ! ] Initialisation du serveur... Tapez stop lorsque tout est chargé (Done!)"
+java -jar minecraft_server."$ver".jar i
+echo -e "$NORMAL"
 echo -e "$ROUGE" " Paramétrage du server.properties" "$NORMAL"
-read  -p "Entrez le nombre de joueurs" nbpl
+read  -p "Entrez le nombre de joueurs: " nbpl
 #modification du server.properties
-sed -ne 's/20/$nbpl/' server.properties
-read -p "Entrez le Motd du serveur" motd
-sed -ne 's/motd=A Minecraft Server/motd=$motd' server.properties
+sed -i -e 's/max-players=.*/max-player=$nbpl/' server.properties
+read -p "Entrez le Motd du serveur: " motd
+sed -i -e 's/motd=.*/motd=$motd/' server.properties
 
 
 echo -e " le port par défaut est 25565, est-il different ? (Y/n): "
 read res
-while [ $res = "Y" ]; do 
+while [ $res = "" || $res = "Y" ]; do 
 	read -p "Entrez la valeur du port: " port
 	su
 	iptables -A INPUT -p tcp -m tcp --dport $port -j ACCEPT
+	sed -i -e "s/server-port=.*/server-port=$port/" server.properties
 	break
 done
 while [ $res = "n" ]; do 
 	su
 	iptables -A INPUT -p tcp -m tcp --dport 25565 -j ACCEPT
-	break
+#	break
 done
-read -p "Configuration terminée... "
-
 
 
