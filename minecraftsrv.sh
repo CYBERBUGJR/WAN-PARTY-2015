@@ -15,12 +15,16 @@ while [ $ver = "list" ] ; do
 	break
 
 done
+read -p "Installer java ? (yes/no)" javach
+if [ $javach = "yes" || $javach = "y" ] ; then 
 echo -e "Installation de open-jre :"
 apt-get update
 apt-get install openjdk-7-jre openjdk-7-jdk vim
 sed -nre 's/"syntax/syntax' /etc/vim/vimrc
+fi
 echo -e "$ROUGE" "Téléchargement de la version "$ver" \n" "$VERT"
 wget https://s3.amazonaws.com/Minecraft.Download/versions/"$ver"/minecraft_server."$ver".jar 
+echo -e "(Si le téléchargement échoue à cause d'un certificat périmé ou pas encore valide, vérifiez votre serveur ntp)\n"
 echo -e "$NORMAL"
 mkdir -p /srv/minecraft_server/ 
 mv minecraft_server."$ver".jar /srv/minecraft_server ; cd /srv/minecraft_server/
@@ -31,10 +35,10 @@ if [ $ram = "y" ] ; then
 	read -p "Pressez entrée pour continuer.. " 
 fi
 
-read -p "Entrez la quantité de mémoire minimale en Mégaoctets(-Xms): " javamin ; echo -e "\n"
-read -p "Entrez la quantité de mémoire maximale en Mégaoctets(-Xmx): " javamax ; echo -e "\n"
+read -p "Entrez la quantité de mémoire minimale (avec M pour Mégaoctes et G pour Gigaoctets)  (-Xms): " javamin ; echo -e "\n"
+read -p "Entrez la quantité de mémoire maximale (avec M pour Mégaoctes et G pour Gigaoctets)  (-Xmx): " javamax ; echo -e "\n"
 read -p "Choisissez un nom d'alias pour le démarrage du seveur : " aliass 	
-echo "alias "$aliass"='cd /srv/minecraft_server/ ; java -jar -Xms"$javamin"M -Xmx"$javamax" minecraft_server."$ver".jar'" >> ~/.bashrc ; echo -e "$ROUGE"
+echo "alias "$aliass"='cd /srv/minecraft_server/ ; java -jar -Xms"$javamin" -Xmx"$javamax" minecraft_server."$ver".jar'" >> ~/.bashrc ; echo -e "$ROUGE"
 #read -p "[MINE] Démarrage du Serveur...[May take a long time]" ; echo -e "$NORMAL"
 #java -jar minecraft_server."$ver".jar 
 
