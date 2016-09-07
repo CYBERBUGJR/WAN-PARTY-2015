@@ -1,0 +1,52 @@
+#! /bin/bash
+FOREMANPASSWORD="changeme"
+
+if [ "`id -u`" -ne 0 ] ; then
+        echo "Relancez le programme en root!"
+        exit 0
+fi
+
+whiptail --yesno "Puppet master a-t-il déjà été installé précédemment ?" 7 58
+if [ $? = 0 ] ; then
+        echo "Suppression des \"restes\" de Puppet master"
+        apt-get remove -y puppet-* foreman*
+        rm -rf /etc/puppet
+        rm -rf /var/lib/puppet
+        rm -rf /etc/apt/sources.list.d/puppetlabs.list
+        rm -rf /etc/apt/sources.list.d/foreman.list
+fi
+
+echo "Installation Puppet 4.x via wget"
+echo http_proxy = http://cachearg.in.ac-montpellier.fr:3128/ >> /etc/wgetrc
+echo https_proxy = http://cachearg.in.ac-montpellier.fr:3128/ >> /etc/wgetrc
+echo us_proxy = on >> /etc/wgetrc
+
+wget https://apt.puppetlabs.com/puppetslabs-release-pc1-jessie.deb
+dpkg -i puppetlabs-release-pc1-jessie.deb
+
+
+echo "Ajout des sources de foreman..."
+echo "deb http://deb.theforeman.org/ jessie 1.12" > /etc/apt/sources.list.d/foreman.list
+echo "deb http://deb.theforeman.org/ plugins 1.12" >> /etc/apt/sources.list.d/foreman.list
+wget -q http://deb.theforeman.org/pubkey.gpg -O- | apt-key add -
+apt-get update
+apt-get install -y foreman-installer ca-certificates
+
+whiptail --yesno "La machine est-elle postinstallée ?" 7 68 --yes-button "Oui elle l'est" --no-button "Non elle ne l'est pas"
+if [ $? = 0 ] ; then
+	echo "Lancement de l'installation"
+else
+	echo "Ajout des règles dans /etc/hosts et dans /etc/hostname"
+	echo "127.0.0.1 `facter fqdn` full" >> /etc/hosts
+	echo "`facter fqdn`" > /etc/hostname
+	hostname `facter fqdn`
+	echo "Lancement de l'installation"
+fi
+
+foreman-installer
+foreman-rake permissions:reset password=$FOREMANPASSWORD
+echo "#####################################################"
+echo "#####################################################"
+echo "Vous pouvez vous connecter sur ce serveur en HTTP..."
+echo -e "Login : \"admin\"\nMot de passe : \"$FOREMANPASSWORD\""
+echo "L'installation est terminée."
