@@ -17,21 +17,28 @@ if [ $? = 0 ] ; then
 fi
 
 echo "Installation Puppet 4.x via wget"
+cp /etc/wgetrc /etc/wgetrc.old
 echo http_proxy = http://cachearg.in.ac-montpellier.fr:3128/ >> /etc/wgetrc
 echo https_proxy = http://cachearg.in.ac-montpellier.fr:3128/ >> /etc/wgetrc
-echo us_proxy = on >> /etc/wgetrc
+echo use_proxy = on >> /etc/wgetrc
 
-wget https://apt.puppetlabs.com/puppetslabs-release-pc1-jessie.deb
+wget https://apt.puppetlabs.com/puppetlabs-release-pc1-jessie.deb
 dpkg -i puppetlabs-release-pc1-jessie.deb
-
+read -p "Press Enter"
 
 echo "Ajout des sources de foreman..."
 echo "deb http://deb.theforeman.org/ jessie 1.12" > /etc/apt/sources.list.d/foreman.list
 echo "deb http://deb.theforeman.org/ plugins 1.12" >> /etc/apt/sources.list.d/foreman.list
 wget -q http://deb.theforeman.org/pubkey.gpg -O- | apt-key add -
 apt-get update
-apt-get install -y foreman-installer ca-certificates
-
+apt-get install -y foreman-installer ca-certificates foreman postgresql ruby-foreman-setup 
+locale | grep en_US
+if [ $? = 1 ] ; then
+	echo -e " Ajouter les locales en_US_UTF8 pour Postgre ... [Press Enter]\n"
+	dpkg-reconfigure locales 
+fi 
+read -p "Press Enter"
+PATH=$PATH:/opt/puppetlabs/bin #PATH de puppet 4.x dans /opt/puppetlabs/bin 
 whiptail --yesno "La machine est-elle postinstallée ?" 7 68 --yes-button "Oui elle l'est" --no-button "Non elle ne l'est pas"
 if [ $? = 0 ] ; then
 	echo "Lancement de l'installation"
@@ -42,7 +49,8 @@ else
 	hostname `facter fqdn`
 	echo "Lancement de l'installation"
 fi
-
+mv /etc/wgetrc.old /etc/wgetrc
+apt update
 foreman-installer
 foreman-rake permissions:reset password=$FOREMANPASSWORD
 echo "#####################################################"
